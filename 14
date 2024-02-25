@@ -1,0 +1,422 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <Windows.h>
+using namespace std;
+
+struct BOOK
+{
+    int NumberUDK = 0, KOLVOEKZ = 0, DATA = 0;
+    string AUTOR = "none", NAMEBOOK = "none";
+};
+
+struct bibl
+{
+    bibl();
+    ~bibl();
+    void push_back(BOOK data);
+    void push_front(BOOK data);
+    int GetSize() { return Size; };
+    BOOK& operator[](const int index);
+    void pop_front();
+    void insert(BOOK data, int index);
+    void insertback(BOOK data, int index);
+    void clear();
+    void removeAT(int index);
+    void pop_back();
+
+private:
+    struct node
+    {
+        BOOK data;
+        node* pnext;
+        node* pprev;
+
+        node(int NumberUDK = 0, string AUTOR = "", string NAMEBOOK = "", int DATA = 0, int KOLVOEKZ = 0, node* pnext = nullptr, node* pprev = nullptr)
+        {
+            this->data.NumberUDK = NumberUDK;
+            this->data.AUTOR = AUTOR;
+            this->data.NAMEBOOK = NAMEBOOK;
+            this->data.DATA = DATA;
+            this->data.KOLVOEKZ = KOLVOEKZ;
+            this->pnext = pnext;
+            this->pprev = pprev;
+        }
+    };
+
+    int Size;
+    node* head;
+    node* tail;
+};
+
+bibl::bibl()
+{
+    Size = 0;
+    head = nullptr;
+    tail = nullptr;
+}
+
+bibl::~bibl()
+{
+    clear();
+}
+
+void bibl::push_back(BOOK data)
+{
+    node* newnode = new node(data.NumberUDK, data.AUTOR, data.NAMEBOOK, data.DATA, data.KOLVOEKZ);
+    if (head == nullptr)
+    {
+        head = newnode;
+        tail = newnode;
+    }
+    else
+    {
+        newnode->pprev = tail;
+        tail->pnext = newnode;
+        tail = newnode;
+    }
+    Size++;
+}
+
+void bibl::push_front(BOOK data)
+{
+    node* newnode = new node(data.NumberUDK, data.AUTOR, data.NAMEBOOK, data.DATA, data.KOLVOEKZ);
+    if (head == nullptr)
+    {
+        head = newnode;
+        tail = newnode;
+    }
+    else
+    {
+        newnode->pnext = head;
+        head->pprev = newnode;
+        head = newnode;
+    }
+    Size++;
+}
+
+BOOK& bibl::operator[](const int index)
+{
+    int counter = 0;
+    node* current = this->head;
+    while (current != nullptr)
+    {
+        if (counter == index)
+        {
+            return current->data;
+        }
+        current = current->pnext;
+        counter++;
+    }
+}
+
+void bibl::pop_front()
+{
+    if (head == nullptr)
+        return;
+
+    node* temp = head;
+    head = head->pnext;
+    if (head != nullptr)
+        head->pprev = nullptr;
+    else
+        tail = nullptr;
+    delete temp;
+    Size--;
+}
+
+void bibl::insert(BOOK data, int index)
+{
+    if (index == 0)
+    {
+        push_front(data);
+    }
+    else if (index > 0 && index <= Size)
+    {
+        node* previous = head;
+        for (int i = 0; i < index - 1; i++)
+        {
+            previous = previous->pnext;
+        }
+        node* newnode = new node(data.NumberUDK, data.AUTOR, data.NAMEBOOK, data.DATA, data.KOLVOEKZ);
+        newnode->pprev = previous;
+        newnode->pnext = previous->pnext;
+        if (previous->pnext != nullptr)
+            previous->pnext->pprev = newnode;
+        previous->pnext = newnode;
+        Size++;
+    }
+    else
+    {
+        cout << "Некорректный номер книги" << endl;
+    }
+}
+
+void bibl::insertback(BOOK data, int index)
+{
+    if (index >= 0 && index <= Size)
+    {
+        if (index == Size)
+        {
+            push_back(data);
+        }
+        else
+        {
+            node* previous = head;
+            for (int i = 0; i < index; i++)
+            {
+                previous = previous->pnext;
+            }
+            node* newnode = new node(data.NumberUDK, data.AUTOR, data.NAMEBOOK, data.DATA, data.KOLVOEKZ);
+            newnode->pprev = previous;
+            newnode->pnext = previous->pnext;
+            if (previous->pnext != nullptr)
+                previous->pnext->pprev = newnode;
+            previous->pnext = newnode;
+            Size++;
+        }
+    }
+    else
+    {
+        cout << "Некорректный номер книги" << endl;
+    }
+}
+
+void bibl::clear()
+{
+    while (Size)
+    {
+        pop_front();
+    }
+}
+
+void bibl::removeAT(int index)
+{
+    if (index == 0)
+    {
+        pop_front();
+    }
+    else if (index > 0 && index < Size - 1)
+    {
+        node* current = head;
+        for (int i = 0; i < index; i++)
+        {
+            current = current->pnext;
+        }
+
+        node* prev = current->pprev;
+        node* next = current->pnext;
+        prev->pnext = next;
+        next->pprev = prev;
+
+        delete current;
+        Size--;
+    }
+    else if (index == Size - 1)
+    {
+        pop_back();
+    }
+    else
+    {
+        cout << "Некорректный номер книги" << endl;
+    }
+}
+
+void bibl::pop_back()
+{
+    if (tail == nullptr)
+        return;
+
+    node* temp = tail;
+    tail = tail->pprev;
+    if (tail != nullptr)
+        tail->pnext = nullptr;
+    else
+        head = nullptr;
+    delete temp;
+    Size--;
+}
+
+void vozmoshnosi()
+{
+    cout << "Для добавления книги в конец введите 1." << endl;
+    cout << "Для добавления книги перед указанной книгой введите 2, после указанной 3." << endl;
+    cout << "Для добавления книги отсортированной по автору введите 4." << endl;
+    cout << "Для удаления выбранной книги введите 5." << endl;
+    cout << "Для вывода информации о книгах введите 6." << endl;
+    cout << "Для взятия книги введите 7, для возврата книги введите 8." << endl;
+    cout << "Для выхода из программы введите 0." << endl;
+}
+
+void vvoddannix(BOOK& data)
+{
+    cout << "Введите номер UDK: ";
+    cin >> data.NumberUDK;
+    cin.ignore();
+    cout << "Введите Фамилию и инициалы автора: ";
+    getline(cin, data.AUTOR);
+    cout << "Введите название книги: ";
+    getline(cin, data.NAMEBOOK);
+    cout << "Введите год издания книги: ";
+    cin >> data.DATA;
+    cout << "Введите количество экземпляров книги: ";
+    cin >> data.KOLVOEKZ;
+    cin.ignore();
+}
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    SetConsoleCP(1251);
+    bibl a;
+    int number = 0;
+    do
+    {
+        BOOK bookdan;
+        vozmoshnosi();
+        cout << "Ваш выбор: ";
+        cin >> number;
+        cin.ignore();
+        switch (number)
+        {
+        case 1:
+        {
+            vvoddannix(bookdan);
+            a.push_back(bookdan);
+            break;
+        }
+        case 2:
+        {
+            int index;
+            cout << "Введите номер книги перед которой хотите вставить: ";
+            cin >> index;
+            cin.ignore();
+            vvoddannix(bookdan);
+            a.insert(bookdan, index);
+            break;
+        }
+        case 3:
+        {
+            int index;
+            cout << "Введите номер книги после которой хотите вставить: ";
+            cin >> index;
+            cin.ignore();
+            vvoddannix(bookdan);
+            a.insertback(bookdan, index);
+            break;
+        }
+        case 4:
+        {
+            bool inserted = false;
+            vvoddannix(bookdan);
+            for (int i = 0; i < a.GetSize(); i++)
+            {
+                if (bookdan.AUTOR < a[i].AUTOR)
+                {
+                    a.insert(bookdan, i);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted)
+            {
+                a.push_back(bookdan);
+            }
+            break;
+        }
+        case 5:
+        {
+            int index;
+            cout << "Введите номер книги, которую хотите удалить: ";
+            cin >> index;
+            cin.ignore();
+            a.removeAT(index);
+            break;
+        }
+        case 6:
+        {
+            if (a.GetSize() == 0)
+            {
+                cout << "Библиотека пуста" << endl;
+            }
+            else
+            {
+                cout << "--------------------------------------------------------------------------------------------------" << endl;
+                cout << "|" << setw(5) << left << "№" << "|" << setw(10) << left << "Номер UDK" << "|" << setw(25) << left << "Фамилия инициалы автора" << "|" << setw(30) << left << "Название книги" << "|" << setw(10) << left
+                    << "Год издания" << "|" << setw(10) << left << "Количество" << "|" << endl;
+                cout << "--------------------------------------------------------------------------------------------------" << endl;
+                for (int i = 0; i < a.GetSize(); i++)
+                {
+                    cout << "|" << setw(5) << left << i;
+                    cout << "|" << setw(10) << left << a[i].NumberUDK;
+                    cout << "|" << setw(25) << left << a[i].AUTOR;
+                    cout << "|" << setw(30) << left << a[i].NAMEBOOK;
+                    cout << "|" << setw(11) << left << a[i].DATA;
+                    cout << "|" << setw(10) << left << a[i].KOLVOEKZ << "|" << endl;
+                    cout << "--------------------------------------------------------------------------------------------------" << endl;
+                }
+            }
+            break;
+        }
+        case 7:
+        {
+            int UDK;
+            cout << "Введите номер UDK: ";
+            cin >> UDK;
+            cin.ignore();
+            bool p = true;
+            for (int i = 0; i < a.GetSize(); i++)
+            {
+                if (a[i].NumberUDK == UDK)
+                {
+                    if (a[i].KOLVOEKZ > 0)
+                    {
+                        cout << "Книга успешно выдана" << endl;
+                        a[i].KOLVOEKZ--;
+                    }
+                    else
+                    {
+                        cout << "Данная книга отсутствует." << endl;
+                    }
+                    p = false;
+                    break;
+                }
+            }
+            if (p == true)
+            {
+                cout << "Неверный номер UDK" << endl;
+            }
+            break;
+        }
+        case 8:
+        {
+            int UDK;
+            cout << "Введите номер UDK: ";
+            cin >> UDK;
+            cin.ignore();
+            bool p = true;
+            for (int i = 0; i < a.GetSize(); i++)
+            {
+                if (a[i].NumberUDK == UDK)
+                {
+                    cout << "Книга успешно возвращена" << endl;
+                    a[i].KOLVOEKZ++;
+                    p = false;
+                    break;
+                }
+            }
+            if (p == true)
+            {
+                cout << "Неверный номер UDK" << endl;
+            }
+            break;
+        }
+        case 0:
+            break;
+        default:
+            cout << "Неверно введенные данные!" << endl;
+            break;
+        }
+    } while (number != 0);
+
+    return 0;
+}
